@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 17, 2026 at 06:14 AM
+-- Generation Time: Oct 05, 2026 at 08:36 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `pustaka`
+-- Database: `maldinci`
 --
 
 -- --------------------------------------------------------
@@ -35,6 +35,14 @@ CREATE TABLE `anggota` (
   `no_hp` varchar(15) DEFAULT NULL,
   `tanggal_daftar` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `anggota`
+--
+
+INSERT INTO `anggota` (`id_anggota`, `user_id`, `nis`, `alamat`, `no_hp`, `tanggal_daftar`) VALUES
+(1, 4, '123457', 'Bandung Indonesia', '089502918001', '2026-09-30'),
+(2, 5, '22345', 'New Jersey', '081221069050', '2026-10-05');
 
 -- --------------------------------------------------------
 
@@ -56,6 +64,14 @@ CREATE TABLE `buku` (
   `cover` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `buku`
+--
+
+INSERT INTO `buku` (`id_buku`, `isbn`, `judul`, `id_kategori`, `id_penulis`, `id_penerbit`, `tahun_terbit`, `jumlah`, `tersedia`, `deskripsi`, `cover`) VALUES
+(3, '20236548', 'Prakerin Berbasis Web', 1, 1, 1, '2024', 2, 5, 'ffsfssdfds', '1790563599_33b72403fe7deb46557a.jpg'),
+(4, '2333', '99 Kisah Azab Indosiar - Best Seller', 1, 1, 1, '2005', 20, 20, 'Itulah', '1791181005_81b4ec01bd9a96dc94fb.jpg');
+
 -- --------------------------------------------------------
 
 --
@@ -67,6 +83,14 @@ CREATE TABLE `buku_rak` (
   `id_buku` int(11) DEFAULT NULL,
   `id_rak` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `buku_rak`
+--
+
+INSERT INTO `buku_rak` (`id`, `id_buku`, `id_rak`) VALUES
+(2, 3, 2),
+(3, 4, 2);
 
 -- --------------------------------------------------------
 
@@ -105,6 +129,15 @@ CREATE TABLE `kategori` (
   `nama_kategori` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `kategori`
+--
+
+INSERT INTO `kategori` (`id_kategori`, `nama_kategori`) VALUES
+(1, 'Fiksi'),
+(2, 'Pembelajaran'),
+(3, 'Non Fiksi');
+
 -- --------------------------------------------------------
 
 --
@@ -131,8 +164,16 @@ CREATE TABLE `peminjaman` (
   `id_buku` int(11) DEFAULT NULL,
   `tanggal_pinjam` date DEFAULT NULL,
   `tanggal_kembali` date DEFAULT NULL,
-  `status` enum('dimohon','dipinjam','kembali','terlambat') DEFAULT 'dipinjam'
+  `status` enum('dimohon','dipinjam','kembali','terlambat') DEFAULT 'dimohon'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `peminjaman`
+--
+
+INSERT INTO `peminjaman` (`id_peminjaman`, `id_anggota`, `id_petugas`, `id_buku`, `tanggal_pinjam`, `tanggal_kembali`, `status`) VALUES
+(14, 1, 1, 3, '2026-10-05', '2026-10-12', 'dipinjam'),
+(15, 2, NULL, 4, '2026-10-05', '2026-10-12', 'dimohon');
 
 -- --------------------------------------------------------
 
@@ -161,6 +202,13 @@ CREATE TABLE `penerbit` (
   `nama_penerbit` varchar(100) DEFAULT NULL,
   `alamat` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `penerbit`
+--
+
+INSERT INTO `penerbit` (`id_penerbit`, `nama_penerbit`, `alamat`) VALUES
+(1, 'Bumi Karya', 'Bandung');
 
 -- --------------------------------------------------------
 
@@ -223,6 +271,13 @@ CREATE TABLE `penulis` (
   `nama_penulis` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `penulis`
+--
+
+INSERT INTO `penulis` (`id_penulis`, `nama_penulis`) VALUES
+(1, 'Ahmad Mauludin');
+
 -- --------------------------------------------------------
 
 --
@@ -235,6 +290,13 @@ CREATE TABLE `petugas` (
   `jabatan` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `petugas`
+--
+
+INSERT INTO `petugas` (`id_petugas`, `user_id`, `jabatan`) VALUES
+(1, 2, 'Petugas 1');
+
 -- --------------------------------------------------------
 
 --
@@ -246,6 +308,14 @@ CREATE TABLE `rak` (
   `nama_rak` varchar(50) DEFAULT NULL,
   `lokasi` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rak`
+--
+
+INSERT INTO `rak` (`id_rak`, `nama_rak`, `lokasi`) VALUES
+(1, 'Rak A', 'Ruang 1'),
+(2, 'Rak B', 'Ruang 2');
 
 -- --------------------------------------------------------
 
@@ -297,7 +367,7 @@ CREATE TABLE `ulasan` (
 -- Table structure for table `users`
 --
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `nama` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
@@ -313,10 +383,11 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Dumping data for table `users`
 --
 
-INSERT IGNORE INTO `users` (`id`, `nama`, `email`, `username`, `password`, `role`, `foto`, `status`, `created_at`) VALUES
-(1, 'Ahmad Mauludin', 'ahmadmauludin1799@gmail.com', 'ahmadmauludin', '$2y$10$uMC9mIL95blgeqs1lboR4OQOXhtkuITEmVbWzNvg/.yqJ1umW4z2q', 'admin', 'ahmadmauludin.jpg', 'aktif', '2026-04-10 15:31:04'),
-(2, 'Saheela Meera', 'saheelameera@gmail.com', 'saheelameera', '$2y$10$CzpE9nQfha17SouLoDYBa.rTs2d7ojsGtdZbHIBZBAzBtP5GBRj6O', 'petugas', 'saheelameera.jpg', 'aktif', '2026-04-10 15:32:38'),
-(3, 'Maldin Ahmadi', 'maldinahmadi@gmail.com', 'maldinahmadi', '$2y$10$FPpcAMkG0LmfaDpgKjXECuVWJvrMN8GJvDDJcecH8mfdDlKp19nq2', 'anggota', 'maldinahmadi.jpg', 'aktif', '2026-04-10 15:35:01');
+INSERT INTO `users` (`id`, `nama`, `email`, `username`, `password`, `role`, `foto`, `status`, `created_at`) VALUES
+(1, 'Ahmad Mauludin', 'ahmadmauludin1799@gmail.com', 'ahmadmauludin', '$2y$10$uMC9mIL95blgeqs1lboR4OQOXhtkuITEmVbWzNvg/.yqJ1umW4z2q', 'admin', '1790748687_35575a21b49f50bad033.jpg', 'aktif', '2026-04-10 15:31:04'),
+(2, 'Saheela Meera', 'saheelameera@gmail.com', 'saheelameera', '$2y$10$CzpE9nQfha17SouLoDYBa.rTs2d7ojsGtdZbHIBZBAzBtP5GBRj6O', 'petugas', '1790748653_5d00e78cccf4cf82b0c1.jpg', 'aktif', '2026-04-10 15:32:38'),
+(4, 'Andini Pertiwi', 'andinicantik@gmail.com', 'andini', '$2y$10$72BzICL6GAIdCGKG0wmDnu4Y9y8SKYxhAkMlM8omeIXbRsr59U/Zu', 'anggota', '1790748668_e652f092a061738682f2.jpg', 'aktif', '2026-09-30 05:44:55'),
+(5, 'Hasmini', 'hasmini@gmail.com', 'hasmini', '$2y$10$SmX/FKnO0CGPF5UL9DjFweMx5QS/boxhMHXnIS0h4bt5WcU06GqfG', 'anggota', '1791180884_6efab12fd6cc7f0f65b7.jpg', 'aktif', '2026-10-05 06:14:45');
 
 --
 -- Indexes for dumped tables
@@ -474,19 +545,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `anggota`
 --
 ALTER TABLE `anggota`
-  MODIFY `id_anggota` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_anggota` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `buku`
 --
 ALTER TABLE `buku`
-  MODIFY `id_buku` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_buku` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `buku_rak`
 --
 ALTER TABLE `buku_rak`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `denda`
@@ -504,7 +575,7 @@ ALTER TABLE `detail_peminjaman`
 -- AUTO_INCREMENT for table `kategori`
 --
 ALTER TABLE `kategori`
-  MODIFY `id_kategori` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_kategori` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `log_aktivitas`
@@ -516,7 +587,7 @@ ALTER TABLE `log_aktivitas`
 -- AUTO_INCREMENT for table `peminjaman`
 --
 ALTER TABLE `peminjaman`
-  MODIFY `id_peminjaman` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_peminjaman` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `penarikan`
@@ -528,7 +599,7 @@ ALTER TABLE `penarikan`
 -- AUTO_INCREMENT for table `penerbit`
 --
 ALTER TABLE `penerbit`
-  MODIFY `id_penerbit` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_penerbit` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `pengaturan`
@@ -552,19 +623,19 @@ ALTER TABLE `pengiriman`
 -- AUTO_INCREMENT for table `penulis`
 --
 ALTER TABLE `penulis`
-  MODIFY `id_penulis` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_penulis` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `petugas`
 --
 ALTER TABLE `petugas`
-  MODIFY `id_petugas` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_petugas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `rak`
 --
 ALTER TABLE `rak`
-  MODIFY `id_rak` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_rak` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `reservasi`
@@ -588,7 +659,7 @@ ALTER TABLE `ulasan`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
