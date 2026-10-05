@@ -131,7 +131,7 @@ CREATE TABLE `peminjaman` (
   `id_buku` int(11) DEFAULT NULL,
   `tanggal_pinjam` date DEFAULT NULL,
   `tanggal_kembali` date DEFAULT NULL,
-  `status` enum('dipinjam','kembali','terlambat') DEFAULT 'dipinjam'
+  `status` enum('dimohon','dipinjam','kembali','terlambat') DEFAULT 'dipinjam'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
