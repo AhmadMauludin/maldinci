@@ -19,7 +19,7 @@ class Buku extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
 
-        $builder = $this->db->table('buku');
+        $builder = $this->buku;
         $builder->select('
             buku.*,
             kategori.nama_kategori,
@@ -38,7 +38,9 @@ class Buku extends BaseController
             $builder->like('buku.judul', $keyword);
         }
 
-        $data['buku'] = $builder->get()->getResultArray();
+        $data['buku'] = $builder->paginate(10);
+        $data['pager'] = $this->buku->pager;
+        $data['keyword'] = $keyword;
 
         return view('buku/index', $data);
     }

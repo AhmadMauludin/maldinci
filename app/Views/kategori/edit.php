@@ -1,14 +1,50 @@
 <?= $this->extend('layouts/main') ?>
+
 <?= $this->section('content') ?>
 <?php $kategori = $kategori ?? []; ?>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Edit Kategori</h1>
+        <a href="<?= base_url('kategori') ?>" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Kembali
+        </a>
+    </div>
 
-<h3>Edit Kategori</h3>
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= session()->getFlashdata('success') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-<form action="<?= base_url('kategori/update/' . $kategori['id_kategori']) ?>" method="post">
-    <label>Nama Kategori</label><br>
-    <input type="text" name="nama_kategori" value="<?= $kategori['nama_kategori'] ?>"><br><br>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= session()->getFlashdata('error') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-    <button type="submit">Update</button>
-</form>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Form Edit Kategori</h6>
+        </div>
+        <div class="card-body">
+            <form action="<?= base_url('kategori/update/' . $kategori['id_kategori']) ?>" method="post" novalidate>
+                <input type="hidden" name="id_kategori" value="<?= $kategori['id_kategori'] ?>">
 
+                <div class="mb-3">
+                    <label for="nama_kategori" class="form-label">Nama Kategori <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nama_kategori" name="nama_kategori" required maxlength="100" value="<?= esc($kategori['nama_kategori']) ?>">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Update
+                    </button>
+                    <a href="<?= base_url('kategori') ?>" class="btn btn-secondary">Batal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

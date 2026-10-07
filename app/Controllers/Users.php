@@ -90,6 +90,8 @@ class Users extends BaseController
 
         $data['users'] = $builder->paginate(10);
         $data['pager'] = $this->users->pager;
+        $data['keyword'] = $keyword;
+        $data['role'] = $role;
 
         return view('users/index', $data);
     }
@@ -226,7 +228,21 @@ class Users extends BaseController
             return redirect()->to('/users')->with('error', 'Data tidak ditemukan');
         }
 
-        return view('users/detail', ['user' => $user]);
+        $data['user'] = $user;
+
+        // Get related data based on role
+        if ($user['role'] === 'anggota') {
+            $data['anggota'] = $this->anggota->getByUserId($id);
+            // Get borrowed books
+            if ($data['anggota']) {
+                $peminjamanModel = new \App\Models\PeminjamanModel();
+                $data['riwayat_pinjam'] = $peminjamanModel->getPeminjamanByAnggotaWithRelations($data['anggota']['id_anggota']);
+            }
+        } elseif ($user['role'] === 'petugas') {
+            $data['petugas'] = $this->petugas->getByUserId($id);
+        }
+
+        return view('users/detail', $data);
     }
 
     public function print()

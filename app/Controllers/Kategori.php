@@ -20,10 +20,13 @@ class Kategori extends BaseController
         if ($keyword) {
             $data['kategori'] = $this->kategoriModel
                 ->like('nama_kategori', $keyword)
-                ->findAll();
+                ->paginate(10);
         } else {
-            $data['kategori'] = $this->kategoriModel->findAll();
+            $data['kategori'] = $this->kategoriModel->paginate(10);
         }
+
+        $data['pager'] = $this->kategoriModel->pager;
+        $data['keyword'] = $keyword;
 
         return view('kategori/index', $data);
     }
@@ -72,6 +75,10 @@ class Kategori extends BaseController
     public function detail($id)
     {
         $data['kategori'] = $this->kategoriModel->find($id);
+        if ($data['kategori']) {
+            $bukuModel = new \App\Models\BukuModel();
+            $data['buku'] = $bukuModel->getByKategori($id);
+        }
         return view('kategori/detail', $data);
     }
 }

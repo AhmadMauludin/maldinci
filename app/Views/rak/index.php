@@ -1,41 +1,96 @@
 <?= $this->extend('layouts/main') ?>
+
 <?= $this->section('content') ?>
-<h3>Data Rak</h3>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Data Rak</h1>
+        <?php if (session()->get('role') !== 'anggota'): ?>
+            <a href="<?= base_url('rak/create') ?>" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Tambah Rak
+            </a>
+        <?php endif; ?>
+    </div>
 
-<form method="get">
-    <input type="text" name="keyword" placeholder="Cari nama rak">
-    <button type="submit">Cari</button>
-</form>
-
-<a href="<?= base_url('rak/create') ?>">Tambah</a>
-<a href="<?= base_url('rak/print') ?>" target="_blank">Print</a>
-
-<table border="1" width="100%">
-    <tr>
-        <th>ID</th>
-        <th>Nama Rak</th>
-        <th>Lokasi</th>
-        <th>Aksi</th>
-    </tr>
-
-    <?php if (isset($rak) && is_array($rak)): ?>
-        <?php foreach ($rak as $r): ?>
-            <tr>
-                <td><?= $r['id_rak'] ?></td>
-                <td><?= $r['nama_rak'] ?></td>
-                <td><?= $r['lokasi'] ?></td>
-                <td>
-                    <a href="<?= base_url('rak/edit/' . $r['id_rak']) ?>">Edit</a>
-                    <a href="<?= base_url('rak/detail/' . $r['id_rak']) ?>">Detail</a>
-                    <a href="<?= base_url('rak/delete/' . $r['id_rak']) ?>" onclick="return confirm('Yakin?')">Hapus</a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <tr>
-            <td colspan="4">Data tidak ditemukan</td>
-        </tr>
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= session()->getFlashdata('success') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     <?php endif; ?>
-</table>
 
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= session()->getFlashdata('error') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="keyword" class="form-control" placeholder="Cari nama rak atau lokasi..." value="<?= esc($keyword ?? '') ?>">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="<?= base_url('rak') ?>" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+                <div class="col-md-2">
+                    <a href="<?= base_url('rak/print' . ($keyword ? '?keyword=' . urlencode($keyword) : '')) ?>" target="_blank" class="btn btn-outline-secondary w-100">Print</a>
+                </div>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr class="text-center">
+                            <th width="5%">No</th>
+                            <th>Nama Rak</th>
+                            <th>Lokasi</th>
+                            <th width="15%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($rak)): ?>
+                            <?php $no = 1 + ($pager->getCurrentPage() - 1) * $pager->getPerPage(); ?>
+                            <?php foreach ($rak as $r): ?>
+                                <tr>
+                                    <td class="text-center"><?= $no++ ?></td>
+                                    <td><?= esc($r['nama_rak']) ?></td>
+                                    <td><?= esc($r['lokasi'] ?? '-') ?></td>
+                                    <td class="text-center">
+                                        <a href="<?= base_url('rak/detail/' . $r['id_rak']) ?>" class="btn btn-sm btn-info" title="Detail">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <?php if (session()->get('role') !== 'anggota'): ?>
+                                            <a href="<?= base_url('rak/edit/' . $r['id_rak']) ?>" class="btn btn-sm btn-warning" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="<?= base_url('rak/delete/' . $r['id_rak']) ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus data ini?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4" class="text-center py-4">Tidak ada data rak</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if ($pager): ?>
+                <nav aria-label="Page navigation">
+                    <?= $pager->links() ?>
+                </nav>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

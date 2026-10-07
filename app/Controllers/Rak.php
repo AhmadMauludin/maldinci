@@ -21,10 +21,13 @@ class Rak extends BaseController
             $data['rak'] = $this->rakModel
                 ->like('nama_rak', $keyword)
                 ->orLike('lokasi', $keyword)
-                ->findAll();
+                ->paginate(10);
         } else {
-            $data['rak'] = $this->rakModel->findAll();
+            $data['rak'] = $this->rakModel->paginate(10);
         }
+
+        $data['pager'] = $this->rakModel->pager;
+        $data['keyword'] = $keyword;
 
         return view('rak/index', $data);
     }
@@ -75,6 +78,10 @@ class Rak extends BaseController
     public function detail($id)
     {
         $data['rak'] = $this->rakModel->find($id);
+        if ($data['rak']) {
+            $bukuModel = new \App\Models\BukuModel();
+            $data['buku'] = $bukuModel->getByRak($id);
+        }
         return view('rak/detail', $data);
     }
 }

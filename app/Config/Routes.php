@@ -20,13 +20,15 @@ $routes->get('/login', 'Auth::login');
 $routes->post('/proses-login', 'Auth::prosesLogin');
 $routes->get('/logout', 'Auth::logout');
 
+// Register
+$routes->get('/register', 'Auth::register');
+$routes->post('/register/store', 'Auth::store');
+
 // Halaman utama
 $routes->get('/', 'Home::index', $authFilter);
 $routes->get('/dashboard', 'Home::index', $authFilter);
 
-// tambahan route halaman profile agar dapat diakses semua role yang sudah login
-$routes->get('/profile', 'Home::profile', $allRole);
-
+// Halaman User
 $routes->get('/users/create', 'Users::create'); // form tambah user
 $routes->post('/users/store', 'Users::store'); // aksi simpan user
 $routes->get('/users', 'Users::index', $allRole); // menampilkan data user hanya untuk admin dan petugas
@@ -67,6 +69,26 @@ $routes->get('/kategori/edit/(:num)', 'Kategori::edit/$1');
 $routes->post('/kategori/update/(:num)', 'Kategori::update/$1');
 $routes->get('/kategori/delete/(:num)', 'Kategori::delete/$1');
 $routes->get('/kategori/print', 'Kategori::print');
+
+// Kelola data Penulis
+$routes->get('/penulis', 'Penulis::index');
+$routes->get('/penulis/create', 'Penulis::create');
+$routes->post('/penulis/store', 'Penulis::store');
+$routes->get('/penulis/detail/(:num)', 'Penulis::detail/$1');
+$routes->get('/penulis/edit/(:num)', 'Penulis::edit/$1');
+$routes->post('/penulis/update/(:num)', 'Penulis::update/$1');
+$routes->get('/penulis/delete/(:num)', 'Penulis::delete/$1');
+$routes->get('/penulis/print', 'Penulis::print');
+
+// Kelola data Penerbit
+$routes->get('/penerbit', 'Penerbit::index');
+$routes->get('/penerbit/create', 'Penerbit::create');
+$routes->post('/penerbit/store', 'Penerbit::store');
+$routes->get('/penerbit/detail/(:num)', 'Penerbit::detail/$1');
+$routes->get('/penerbit/edit/(:num)', 'Penerbit::edit/$1');
+$routes->post('/penerbit/update/(:num)', 'Penerbit::update/$1');
+$routes->get('/penerbit/delete/(:num)', 'Penerbit::delete/$1');
+$routes->get('/penerbit/print', 'Penerbit::print');
 
 // Peminjaman
 $routes->get('/peminjaman', 'Peminjaman::index', $allRole);

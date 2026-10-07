@@ -39,6 +39,26 @@ class PeminjamanModel extends Model
         return $this->where('id_anggota', $id_anggota)->findAll();
     }
 
+    public function getPeminjamanByAnggotaWithRelations($id_anggota)
+    {
+        $builder = $this->db->table($this->table);
+        $builder->select('
+            peminjaman.*,
+            users.nama as nama_anggota,
+            anggota.nis,
+            buku.judul as judul_buku,
+            petugas_user.nama as nama_petugas
+        ');
+        $builder->join('anggota', 'anggota.id_anggota = peminjaman.id_anggota');
+        $builder->join('users', 'users.id = anggota.user_id');
+        $builder->join('buku', 'buku.id_buku = peminjaman.id_buku');
+        $builder->join('petugas', 'petugas.id_petugas = peminjaman.id_petugas', 'left');
+        $builder->join('users as petugas_user', 'petugas_user.id = petugas.user_id', 'left');
+        $builder->where('anggota.id_anggota', $id_anggota);
+        $builder->orderBy('peminjaman.tanggal_pinjam', 'DESC');
+        return $builder->get()->getResultArray();
+    }
+
     public function getPeminjamanDipinjam()
     {
         return $this->where('status', 'dipinjam')->findAll();

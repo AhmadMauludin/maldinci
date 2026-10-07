@@ -1,27 +1,77 @@
-<html>
+<!DOCTYPE html>
+<html lang="id">
 
 <head>
-    <title>Print Data Kategori</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Print Data Kategori - Maldin17App</title>
+
+    <!-- Bootstrap CSS Lokal -->
+    <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            padding: 20px;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        .print-header {
+            text-align: center;
+            border-bottom: 2px solid #4e73df;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .print-header h2 {
+            margin: 0;
+            color: #4e73df;
+        }
+
+        .print-header p {
+            margin: 5px 0 0;
+            color: #6c757d;
+        }
+
+        .table th {
+            background-color: #f8f9fc;
+        }
+    </style>
 </head>
 
 <body onload="window.print()">
+    <div class="print-header">
+        <h2><i class="bi bi-book-fill"></i> Maldin17App</h2>
+        <p>Sistem Manajemen Perpustakaan</p>
+    </div>
 
-    <h3>Data Kategori</h3>
+    <h4 class="mb-3">Data Kategori</h4>
 
-    <table border="1" width="100%">
-        <tr>
-            <th>ID</th>
-            <th>Nama Kategori</th>
-        </tr>
-
-        <?php foreach (isset($kategori) && is_array($kategori) ? $kategori : [] as $k): ?>
-            <tr>
-                <td><?= $k['id_kategori'] ?></td>
-                <td><?= $k['nama_kategori'] ?></td>
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr class="text-center">
+                <th width="5%">No</th>
+                <th>Nama Kategori</th>
             </tr>
-        <?php endforeach; ?>
+        </thead>
+        <tbody>
+            <?php foreach (isset($kategori) && is_array($kategori) ? $kategori : [] as $i => $k): ?>
+                <tr>
+                    <td class="text-center"><?= $i + 1 ?></td>
+                    <td><?= esc($k['nama_kategori']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
     </table>
 
+    <div class="text-end mt-3 text-muted small">
+        Dicetak pada: <?= date('d/m/Y H:i:s') ?>
+    </div>
 </body>
 
 </html>
