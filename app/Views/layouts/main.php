@@ -392,6 +392,20 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
+        
+        /* Hover effect for dashboard cards */
+        .hover-card {
+            transition: all 0.2s ease;
+        }
+        
+        .hover-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1.5rem 0 rgba(58, 59, 69, 0.2) !important;
+        }
+        
+        .hover-card:hover .card-footer small {
+            color: #4e73df !important;
+        }
     </style>
 </head>
 
