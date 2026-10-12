@@ -10,7 +10,7 @@
                             <div>
                                 <h6 class="text-muted mb-1">Buku</h6>
                                 <h3 class="mb-0 fw-bold"><?= $totalBuku ?></h3>
-    <h6 class="text-success mb-1">Tersedia : <b><?= $bukuTersedia ?></b></h6>
+                                <h6 class="text-success mb-1">Tersedia : <b><?= $bukuTersedia ?></b></h6>
                             </div>
                             <div class="bg-primary bg-opacity-10 p-3 rounded">
                                 <i class="bi bi-book-fill text-primary" style="font-size: 2rem;"></i>
