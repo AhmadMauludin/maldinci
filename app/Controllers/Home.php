@@ -9,6 +9,8 @@ use App\Models\PenerbitModel;
 use App\Models\RakModel;
 use App\Models\PeminjamanModel;
 use App\Models\UsersModel;
+use App\Models\AnggotaModel;
+use App\Models\PetugasModel;
 
 class Home extends BaseController
 {
@@ -31,6 +33,19 @@ class Home extends BaseController
             'totalPeminjaman' => $peminjamanModel->countAllResults(),
             'totalUsers' => $usersModel->countAllResults(),
         ];
+
+        $session = session();
+        $role = $session->get('role');
+
+        if ($role === 'petugas') {
+            $data['pendingKonfirmasi'] = $peminjamanModel->getPendingKonfirmasi(5);
+        } elseif ($role === 'anggota') {
+            $anggotaModel = new AnggotaModel();
+            $anggota = $anggotaModel->getByUserId($session->get('id'));
+            if ($anggota) {
+                $data['activePeminjaman'] = $peminjamanModel->getActivePeminjamanByAnggota($anggota['id_anggota'], 5);
+            }
+        }
         
         return view('layouts/dashboard', $data);
     }
