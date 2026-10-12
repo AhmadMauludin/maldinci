@@ -26,6 +26,9 @@ class Home extends BaseController
 
         $data = [
             'totalBuku' => $bukuModel->countAllResults(),
+
+            'bukuTersedia' => count($bukuModel->bukuTersedia()),
+
             'totalKategori' => $kategoriModel->countAllResults(),
             'totalPenulis' => $penulisModel->countAllResults(),
             'totalPenerbit' => $penerbitModel->countAllResults(),

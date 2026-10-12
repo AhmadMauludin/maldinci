@@ -81,4 +81,10 @@ class BukuModel extends Model
         $builder->where('rak.id_rak', $id_rak);
         return $builder->get()->getResultArray();
     }
+
+    public function bukuTersedia()
+    {
+        return $this->where('tersedia >', 0)->findAll();
+    }
+
 }
