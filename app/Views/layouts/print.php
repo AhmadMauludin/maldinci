@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Print - Sistem Perpustakaan</title>
+    <title>Print - MaldinPustaka</title>
 
     <!-- Bootstrap CSS Lokal -->
     <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('assets/bootstrap-icons-1.13.1/bootstrap-icons.css') ?>" rel="stylesheet">
 
     <style>
         body {
@@ -23,11 +24,8 @@
     </style>
 </head>
 
-<body>
+<body onload="window.print()">
     <?= $this->renderSection('content') ?>
-
-    <!-- Bootstrap JS Lokal -->
-    <script src="<?= base_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
 </body>
 
 </html>

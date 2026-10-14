@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Print Data Penulis - Maldin17App</title>
+    <title>Print Data Penulis - MaldinPustaka</title>
 
     <!-- Bootstrap CSS Lokal -->
     <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
@@ -46,7 +46,7 @@
 
 <body onload="window.print()">
     <div class="print-header">
-        <h2><i class="bi bi-book-fill"></i> Maldin17App</h2>
+        <h2><i class="bi bi-person-lines-fill"></i> MaldinPustaka</h2>
         <p>Sistem Manajemen Perpustakaan</p>
     </div>
 

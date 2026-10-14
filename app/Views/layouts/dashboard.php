@@ -1,11 +1,16 @@
 <?= $this->extend('layouts/main') ?>
+
+<?= $this->section('pageTitle') ?>
+Dashboard
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="container mt-4">
     <div class="row g-4">
 
             <!-- Users (Admin/Petugas only) -->
         <?php if (session()->get('role') !== 'anggota'): ?>
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('users') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">
@@ -38,7 +43,7 @@
 
 
         <!-- Peminjaman -->
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('peminjaman') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">
@@ -75,7 +80,7 @@
         </div>
 
         <!-- Buku -->
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('buku') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">
@@ -105,7 +110,7 @@
         </div>
 
         <!-- Kategori -->
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('kategori') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">
@@ -131,7 +136,7 @@
         </div>
 
         <!-- Penulis -->
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('penulis') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">
@@ -157,7 +162,7 @@
         </div>
 
         <!-- Penerbit -->
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('penerbit') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">
@@ -183,7 +188,7 @@
         </div>
 
         <!-- Rak -->
-        <div class="col-xl-3 col-md-4 col-6">
+        <div class="col-xl-4 col-md-4 col-6">
             <a href="<?= base_url('rak') ?>" class="text-decoration-none text-dark">
                 <div class="card border-0 shadow-sm h-100 hover-card">
                     <div class="card-body">

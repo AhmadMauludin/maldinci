@@ -1,24 +1,26 @@
 <?= $this->extend('layouts/main') ?>
 
+<?= $this->section('pageTitle') ?>
+Detail Buku
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Detail Buku</h1>
-        <div>
-            <?php if (session()->get('role') !== 'anggota'): ?>
-                <a href="<?= base_url('buku/edit/' . ($buku['id_buku'] ?? '')) ?>" class="btn btn-warning me-2">
-                    <i class="bi bi-pencil"></i> Edit
-                </a>
-            <?php endif; ?>
-            <a href="<?= base_url('buku') ?>" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali
-            </a>
-        </div>
-    </div>
-
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Informasi Buku</h6>
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Informasi Buku</h6>
+                <div>
+                    <?php if (session()->get('role') !== 'anggota'): ?>
+                        <a href="<?= base_url('buku/edit/' . ($buku['id_buku'] ?? '')) ?>" class="btn btn-warning me-2">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                    <?php endif; ?>
+                    <a href="<?= base_url('buku') ?>" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Kembali
+                    </a>
+                </div>
+            </div>
         </div>
         <div class="card-body">
             <div class="row">

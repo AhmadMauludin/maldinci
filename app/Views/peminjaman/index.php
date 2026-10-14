@@ -1,14 +1,11 @@
 <?= $this->extend('layouts/main') ?>
 
+<?= $this->section('pageTitle') ?>
+Data Peminjaman
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Data Peminjaman</h1>
-        <a href="<?= base_url('/peminjaman/create') ?>" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Tambah Peminjaman
-        </a>
-    </div>
-
     <?php if (session()->getFlashdata('success')): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <?= session()->getFlashdata('success') ?>
@@ -25,29 +22,36 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="keyword" class="form-control" placeholder="Cari nama anggota, NIS, atau judul buku..." value="<?= esc($keyword ?? '') ?>">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <form method="get" class="row g-3 flex-grow-1">
+                    <div class="col-md-4 col-12">
+                        <input type="text" name="keyword" class="form-control" placeholder="Cari nama anggota, NIS, atau judul buku..." value="<?= esc($keyword ?? '') ?>">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <select name="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="dimohon" <?= ($status ?? '') === 'dimohon' ? 'selected' : '' ?>>Dimohon</option>
+                            <option value="dipinjam" <?= ($status ?? '') === 'dipinjam' ? 'selected' : '' ?>>Dipinjam</option>
+                            <option value="kembali" <?= ($status ?? '') === 'kembali' ? 'selected' : '' ?>>Kembali</option>
+                            <option value="terlambat" <?= ($status ?? '') === 'terlambat' ? 'selected' : '' ?>>Terlambat</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <button type="submit" class="btn btn-secondary w-100">Filter</button>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="<?= base_url('/peminjaman') ?>" class="btn btn-outline-secondary w-100">Reset</a>
+                    </div>
+                    <div class="col-md-1 col-6">
+                        <a href="<?= base_url('/peminjaman/print' . ($keyword ? '?keyword=' . urlencode($keyword) : '') . ($status ? ($keyword ? '&' : '?') . 'status=' . $status : '')) ?>" target="_blank" class="btn btn-outline-secondary w-100">Print</a>
+                    </div>
+                </form>
+                <div class="ms-auto">
+                    <a href="<?= base_url('/peminjaman/create') ?>" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Tambah Peminjaman
+                    </a>
                 </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-select">
-                        <option value="">Semua Status</option>
-                        <option value="dimohon" <?= ($status ?? '') === 'dimohon' ? 'selected' : '' ?>>Dimohon</option>
-                        <option value="dipinjam" <?= ($status ?? '') === 'dipinjam' ? 'selected' : '' ?>>Dipinjam</option>
-                        <option value="kembali" <?= ($status ?? '') === 'kembali' ? 'selected' : '' ?>>Kembali</option>
-                        <option value="terlambat" <?= ($status ?? '') === 'terlambat' ? 'selected' : '' ?>>Terlambat</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
-                </div>
-                <div class="col-md-2">
-                    <a href="<?= base_url('/peminjaman') ?>" class="btn btn-outline-secondary w-100">Reset</a>
-                </div>
-                <div class="col-md-1">
-                    <a href="<?= base_url('/peminjaman/print' . ($keyword ? '?keyword=' . urlencode($keyword) : '') . ($status ? ($keyword ? '&' : '?') . 'status=' . $status : '')) ?>" target="_blank" class="btn btn-outline-secondary w-100">Print</a>
-                </div>
-            </form>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -126,7 +130,7 @@
 
             <?php if ($pager): ?>
                 <nav aria-label="Page navigation">
-                    <?= $pager->links() ?>
+                    <?= $pager->links('default', 'custom_buttons') ?>
                 </nav>
             <?php endif; ?>
         </div>

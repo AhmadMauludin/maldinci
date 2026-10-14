@@ -1,6 +1,4 @@
 <hr class="sidebar-divider">
-            <div class="sidebar-heading">Menu Utama</div>
-
             <a href="<?= base_url('/') ?>" class="nav-link <?= uri_string() == '' ? 'active' : '' ?>">
                 <i class="bi bi-speedometer2"></i>
                 <span class="nav-text">Dashboard</span>
@@ -10,9 +8,6 @@
                 <i class="bi bi-person"></i>
                 <span class="nav-text">Profile</span>
             </a>
-
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">Manajemen Data</div>
 
             <a href="<?= base_url('rak') ?>" class="nav-link <?= strpos(uri_string(), 'rak') === 0 ? 'active' : '' ?>">
                 <i class="bi bi-bookshelf"></i>

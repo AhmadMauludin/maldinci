@@ -4,7 +4,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $title ?? 'Maldin17App' ?></title>
+    <title><?= $title ?? 'MaldinPustaka' ?></title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="<?= base_url('assets/images/logo-app.ico') ?>">
+    <link rel="shortcut icon" href="<?= base_url('assets/images/logo-app.ico') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('assets/images/logo-app.jpg') ?>">
 
     <!-- Bootstrap CSS Lokal -->
     <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
@@ -12,8 +17,8 @@
 
     <style>
         :root {
-            --sidebar-width: 250px;
-            --sidebar-collapsed-width: 70px;
+            --sidebar-width: 180px;
+            --sidebar-collapsed-width: 64px;
             --header-height: 60px;
         }
 
@@ -36,6 +41,11 @@
             transition: all 0.3s ease;
             overflow-y: auto;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        .sidebar::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Edge */
         }
 
         .sidebar.collapsed {
@@ -80,9 +90,20 @@
             white-space: nowrap;
         }
 
+        .sidebar .nav-link:focus,
+        .sidebar .nav-link:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
+
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
-            background-color: #eaecf4;
+            background-color: transparent;
+            color: #858796;
+        }
+
+        .sidebar .nav-link:hover i,
+        .sidebar .nav-link.active i {
             color: #4e73df;
         }
 
@@ -233,6 +254,15 @@
             font-weight: 600;
             color: #3a3b45;
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+            flex-shrink: 1;
+        }
+
+        .sidebar.collapsed ~ .main-content .top-navbar .page-title {
+            max-width: none;
         }
 
         .top-navbar .user-menu {
@@ -416,8 +446,8 @@
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-book-fill text-primary me-2" style="font-size: 1.5rem;"></i>
-            <span class="brand-text">Maldin17App</span>
+            <img src="<?= base_url('assets/images/logo-app.jpg') ?>" alt="MaldinPustaka" style="height: 32px; width: auto;" class="me-2">
+            <span class="brand-text">MalPus</span>
         </div>
 
         <div class="sidebar-menu">
@@ -434,9 +464,10 @@
                 <i class="bi bi-list"></i>
             </button>
 
+            <h1 class="page-title ms-3 mb-0"><?= $this->renderSection('pageTitle') ?></h1>
 
-            <div class="user-menu">
-                <span class="user-name d-none d-md-block"><?= session('nama') ?></span>
+            <div class="user-menu ms-auto">
+                <span class="user-name d-none d-md-block"><strong><?= session('nama') ?></strong  > [<?= session('role') ?>]</span>
                 <img src="<?= base_url('uploads/users/' . session()->get('foto')) ?>" alt="User" class="user-avatar" onerror="this.src='<?= base_url('assets/img/default-avatar.png') ?>'">
                 <a href="<?= base_url('logout') ?>" class="btn btn-sm btn-outline-danger">
                     <i class="bi bi-box-arrow-right"></i> Logout
@@ -460,11 +491,21 @@
             const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
 
+            // Load saved sidebar state from localStorage
+            const savedState = localStorage.getItem('sidebarCollapsed');
+            if (window.innerWidth >= 992 && savedState !== null) {
+                const isCollapsed = savedState === 'true';
+                sidebar.classList.toggle('collapsed', isCollapsed);
+                mainContent.classList.toggle('expanded', isCollapsed);
+            }
+
             // Toggle sidebar on desktop
             sidebarToggle.addEventListener('click', function() {
                 if (window.innerWidth >= 992) {
-                    sidebar.classList.toggle('collapsed');
+                    const isCollapsed = sidebar.classList.toggle('collapsed');
                     mainContent.classList.toggle('expanded');
+                    // Save state to localStorage
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
                 } else {
                     sidebar.classList.toggle('show');
                     sidebarOverlay.classList.toggle('show');

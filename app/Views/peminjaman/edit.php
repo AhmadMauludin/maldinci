@@ -1,14 +1,11 @@
 <?= $this->extend('layouts/main') ?>
 
+<?= $this->section('pageTitle') ?>
+Edit Peminjaman
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Edit Peminjaman</h1>
-        <a href="<?= base_url('/peminjaman') ?>" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Kembali
-        </a>
-    </div>
-
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <?= session()->getFlashdata('error') ?>
@@ -18,7 +15,12 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Form Edit Peminjaman</h6>
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Form Edit Peminjaman</h6>
+                <a href="<?= base_url('/peminjaman') ?>" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Kembali
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <form action="<?= base_url('/peminjaman/update/' . $peminjaman['id_peminjaman']) ?>" method="post">
