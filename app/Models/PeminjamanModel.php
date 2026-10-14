@@ -97,4 +97,24 @@ class PeminjamanModel extends Model
         $builder->limit($limit);
         return $builder->get()->getResultArray();
     }
+
+    public function getPeminjamanCountByAnggota($id_anggota)
+    {
+        return $this->where('id_anggota', $id_anggota)->countAllResults();
+    }
+
+    public function getPeminjamanDipinjamByAnggota($id_anggota)
+    {
+        return $this->where('id_anggota', $id_anggota)->where('status', 'dipinjam')->countAllResults();
+    }
+
+    public function getPeminjamanMenungguByAnggota($id_anggota)
+    {
+        return $this->where('id_anggota', $id_anggota)->where('status', 'dimohon')->countAllResults();
+    }
+
+    public function getPeminjamanDikembalikanByAnggota($id_anggota)
+    {
+        return $this->where('id_anggota', $id_anggota)->where('status', 'kembali')->countAllResults();
+    }
 }
