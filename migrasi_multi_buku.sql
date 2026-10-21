@@ -2,7 +2,7 @@
 -- Migrasi: Peminjaman multi-buku
 -- Kolom peminjaman.id_buku diubah dari int menjadi array JSON,
 -- contoh: [3, 4, 7]
--- Jalankan file ini satu kali pada database maldinci.
+-- Jalankan file ini satu kali pada database maldinci (run/copast ke sql).
 -- ============================================================
 
 ALTER TABLE `peminjaman` MODIFY `id_buku` TEXT NOT NULL;
