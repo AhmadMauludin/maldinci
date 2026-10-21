@@ -5,6 +5,7 @@ Edit Peminjaman
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php $bukuTerpilih = array_map('strval', (array) old('id_buku', $peminjaman['buku_ids'] ?? [])); ?>
 <div class="container-fluid">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -23,7 +24,7 @@ Edit Peminjaman
             </div>
         </div>
         <div class="card-body">
-            <form action="<?= base_url('/peminjaman/update/' . $peminjaman['id_peminjaman']) ?>" method="post">
+            <form action="<?= base_url('/peminjaman/update/' . $peminjaman['id_peminjaman']) ?>" method="post" id="formPeminjaman">
                 <?= csrf_field() ?>
                 <div class="row">
                     <?php if (session()->get('role') === 'anggota'): ?>
@@ -48,15 +49,26 @@ Edit Peminjaman
                         </div>
                     <?php endif; ?>
                     <div class="col-md-6 mb-3">
-                        <label for="id_buku" class="form-label">Buku <span class="text-danger">*</span></label>
-                        <select name="id_buku" id="id_buku" class="form-select" required>
-                            <option value="">-- Pilih Buku --</option>
+                        <label class="form-label">Buku <span class="text-danger">*</span></label>
+                        <input type="text" id="cariBuku" class="form-control form-control-sm mb-2" placeholder="Cari judul buku...">
+                        <div class="border rounded p-2" id="daftarBuku" style="max-height: 240px; overflow-y: auto;">
                             <?php foreach ($buku as $b): ?>
-                                <option value="<?= $b['id_buku'] ?>" <?= old('id_buku', $peminjaman['id_buku']) == $b['id_buku'] ? 'selected' : '' ?> data-tersedia="<?= $b['tersedia'] ?>">
-                                    <?= esc($b['judul']) ?> (Tersedia: <?= $b['tersedia'] ?>)
-                                </option>
+                                <?php $tersedia = (int) $b['tersedia']; ?>
+                                <div class="form-check buku-item" data-judul="<?= esc(strtolower($b['judul']), 'attr') ?>">
+                                    <input class="form-check-input" type="checkbox" name="id_buku[]" id="buku_<?= $b['id_buku'] ?>" value="<?= $b['id_buku'] ?>" <?= in_array((string) $b['id_buku'], $bukuTerpilih, true) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="buku_<?= $b['id_buku'] ?>">
+                                        <?= esc($b['judul']) ?>
+                                        <?php if ($tersedia > 0): ?>
+                                            <span class="text-muted small">(Tersedia: <?= $tersedia ?>)</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-danger">Tidak tersedia</span>
+                                        <?php endif; ?>
+                                    </label>
+                                </div>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
+                        <div class="form-text">Centang satu atau lebih buku yang dipinjam. Buku dengan stok habis hanya bisa dipertahankan jika sudah dipilih sebelumnya.</div>
+                        <div class="text-danger small d-none" id="errorBuku">Pilih minimal satu buku.</div>
                     </div>
                 </div>
                 <div class="row">
@@ -104,4 +116,22 @@ Edit Peminjaman
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('cariBuku').addEventListener('input', function() {
+    const kata = this.value.toLowerCase();
+    document.querySelectorAll('#daftarBuku .buku-item').forEach(function(item) {
+        item.classList.toggle('d-none', !item.dataset.judul.includes(kata));
+    });
+});
+
+document.getElementById('formPeminjaman').addEventListener('submit', function(e) {
+    const jumlah = document.querySelectorAll('#daftarBuku input[name="id_buku[]"]:checked').length;
+    if (jumlah === 0) {
+        e.preventDefault();
+        document.getElementById('errorBuku').classList.remove('d-none');
+        document.getElementById('daftarBuku').classList.add('border-danger');
+    }
+});
+</script>
 <?= $this->endSection() ?>

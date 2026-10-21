@@ -8,6 +8,7 @@ use App\Models\PetugasModel;
 use App\Models\BukuModel;
 use App\Models\UsersModel;
 use App\Models\PengaturanModel;
+use CodeIgniter\Database\RawSql;
 
 class Peminjaman extends BaseController
 {
@@ -28,6 +29,45 @@ class Peminjaman extends BaseController
         $this->pengaturan = new \App\Models\PengaturanModel();
     }
 
+    /**
+     * Mengurangi stok buku sebanyak satu untuk setiap id buku.
+     */
+    private function kurangiStok(array $idBuku): void
+    {
+        foreach ($idBuku as $id) {
+            $this->buku->where('id_buku', $id)
+                ->where('tersedia >', 0)
+                ->set('tersedia', 'tersedia - 1', false)
+                ->update();
+        }
+    }
+
+    /**
+     * Menambah stok buku sebanyak satu untuk setiap id buku.
+     */
+    private function tambahStok(array $idBuku): void
+    {
+        foreach ($idBuku as $id) {
+            $this->buku->where('id_buku', $id)
+                ->set('tersedia', 'tersedia + 1', false)
+                ->update();
+        }
+    }
+
+    /**
+     * Mengambil data buku berdasarkan daftar id dan memastikan semuanya ada.
+     */
+    private function getBukuMap(array $idBuku): array
+    {
+        if (empty($idBuku)) {
+            return [];
+        }
+
+        $daftarBuku = $this->buku->whereIn('id_buku', $idBuku)->findAll();
+
+        return array_column($daftarBuku, null, 'id_buku');
+    }
+
     public function index()
     {
         $session = session();
@@ -38,12 +78,10 @@ class Peminjaman extends BaseController
             peminjaman.*,
             users.nama as nama_anggota,
             anggota.nis,
-            buku.judul as judul_buku,
             petugas_user.nama as nama_petugas
         ');
         $builder->join('anggota', 'anggota.id_anggota = peminjaman.id_anggota');
         $builder->join('users', 'users.id = anggota.user_id');
-        $builder->join('buku', 'buku.id_buku = peminjaman.id_buku');
         $builder->join('petugas', 'petugas.id_petugas = peminjaman.id_petugas', 'left');
         $builder->join('users as petugas_user', 'petugas_user.id = petugas.user_id', 'left');
 
@@ -56,11 +94,19 @@ class Peminjaman extends BaseController
         }
 
         if ($keyword) {
+            $bukuIds = $this->buku->select('id_buku')->like('judul', $keyword)->findAll();
+
             $builder->groupStart()
                 ->like('users.nama', $keyword)
-                ->orLike('anggota.nis', $keyword)
-                ->orLike('buku.judul', $keyword)
-                ->groupEnd();
+                ->orLike('anggota.nis', $keyword);
+
+            foreach ($bukuIds as $buku) {
+                $idBuku = (int) $buku['id_buku'];
+                $builder->orWhere(new RawSql("JSON_CONTAINS(peminjaman.id_buku, '{$idBuku}')"))
+                    ->orWhere('peminjaman.id_buku', $idBuku);
+            }
+
+            $builder->groupEnd();
         }
 
         if ($status) {
@@ -68,7 +114,7 @@ class Peminjaman extends BaseController
         }
 
         $builder->orderBy('peminjaman.tanggal_pinjam', 'DESC');
-        $data['peminjaman'] = $builder->paginate(10);
+        $data['peminjaman'] = $this->peminjaman->attachBuku($builder->paginate(10));
         $data['pager'] = $this->peminjaman->pager;
         $data['keyword'] = $keyword;
         $data['status'] = $status;
@@ -79,7 +125,7 @@ class Peminjaman extends BaseController
     public function create()
     {
         $session = session();
-        $data['buku'] = $this->buku->where('tersedia >', 0)->findAll();
+        $data['buku'] = $this->buku->where('tersedia >', 0)->orderBy('judul', 'ASC')->findAll();
         $data['petugas'] = $this->petugas->getAllWithUser();
         $data['pengaturan'] = $this->pengaturan->first();
 
@@ -101,25 +147,37 @@ class Peminjaman extends BaseController
     {
         $session = session();
         $validation = \Config\Services::validation();
-        $validation->setRules([
-            'id_buku'       => 'required',
+        $rules = [
+            'id_buku'        => 'required',
+            'id_buku.*'      => 'is_natural_no_zero',
             'tanggal_pinjam' => 'required',
             'tanggal_kembali' => 'required',
-        ]);
+        ];
 
         if ($session->get('role') !== 'anggota') {
-            $validation->setRules([
-                'id_anggota'    => 'required',
-            ]);
+            $rules['id_anggota'] = 'required';
         }
+
+        $validation->setRules($rules);
 
         if (!$validation->withRequest($this->request)->run()) {
             return redirect()->back()->with('error', implode('<br>', $validation->getErrors()))->withInput();
         }
 
-        $buku = $this->buku->find($this->request->getPost('id_buku'));
-        if (!$buku || $buku['tersedia'] <= 0) {
-            return redirect()->back()->with('error', 'Buku tidak tersedia untuk dipinjam')->withInput();
+        $idBuku = $this->peminjaman->getBukuIds($this->request->getPost('id_buku'));
+        if (empty($idBuku)) {
+            return redirect()->back()->with('error', 'Pilih minimal satu buku untuk dipinjam')->withInput();
+        }
+
+        $bukuMap = $this->getBukuMap($idBuku);
+        if (count($bukuMap) !== count($idBuku)) {
+            return redirect()->back()->with('error', 'Ada buku yang tidak ditemukan')->withInput();
+        }
+
+        foreach ($idBuku as $id) {
+            if ((int) $bukuMap[$id]['tersedia'] <= 0) {
+                return redirect()->back()->with('error', 'Buku "' . esc($bukuMap[$id]['judul']) . '" tidak tersedia untuk dipinjam')->withInput();
+            }
         }
 
         $id_petugas = null;
@@ -147,17 +205,26 @@ class Peminjaman extends BaseController
         $data = [
             'id_anggota'     => $id_anggota,
             'id_petugas'     => $id_petugas,
-            'id_buku'        => $this->request->getPost('id_buku'),
+            'id_buku'        => $this->peminjaman->setBukuIds($idBuku),
             'tanggal_pinjam' => $this->request->getPost('tanggal_pinjam'),
             'tanggal_kembali' => $this->request->getPost('tanggal_kembali'),
             'status'         => $status,
         ];
 
+        $db = $this->peminjaman->db;
+        $db->transStart();
+
         $this->peminjaman->save($data);
 
-        // Kurangi stok hanya jika status dipinjam (bukan dimohon)
+        // Kurangi stok setiap buku hanya jika status dipinjam (bukan dimohon)
         if ($status === 'dipinjam') {
-            $this->buku->update($data['id_buku'], ['tersedia' => $buku['tersedia'] - 1]);
+            $this->kurangiStok($idBuku);
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->with('error', 'Peminjaman gagal disimpan')->withInput();
         }
 
         $msg = $status === 'dimohon' ? 'Pengajuan peminjaman berhasil dikirim, menunggu konfirmasi petugas!' : 'Peminjaman berhasil ditambahkan!';
@@ -188,17 +255,37 @@ class Peminjaman extends BaseController
             return redirect()->to('/peminjaman')->with('error', 'Data petugas tidak ditemukan');
         }
 
-        $buku = $this->buku->find($peminjaman['id_buku']);
-        if (!$buku || $buku['tersedia'] <= 0) {
-            return redirect()->to('/peminjaman')->with('error', 'Buku sudah tidak tersedia');
+        $idBuku = $this->peminjaman->getBukuIds($peminjaman['id_buku']);
+        if (empty($idBuku)) {
+            return redirect()->to('/peminjaman')->with('error', 'Data buku pada peminjaman tidak ditemukan');
         }
+
+        $bukuMap = $this->getBukuMap($idBuku);
+        if (count($bukuMap) !== count($idBuku)) {
+            return redirect()->to('/peminjaman')->with('error', 'Ada buku pada peminjaman yang sudah dihapus');
+        }
+
+        foreach ($idBuku as $id_buku) {
+            if ((int) $bukuMap[$id_buku]['tersedia'] <= 0) {
+                return redirect()->to('/peminjaman')->with('error', 'Buku "' . esc($bukuMap[$id_buku]['judul']) . '" sudah tidak tersedia');
+            }
+        }
+
+        $db = $this->peminjaman->db;
+        $db->transStart();
 
         $this->peminjaman->update($id, [
             'status'     => 'dipinjam',
             'id_petugas' => $petugasData['id_petugas'],
         ]);
 
-        $this->buku->update($peminjaman['id_buku'], ['tersedia' => $buku['tersedia'] - 1]);
+        $this->kurangiStok($idBuku);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/peminjaman')->with('error', 'Peminjaman gagal dikonfirmasi');
+        }
 
         return redirect()->to('/peminjaman')->with('success', 'Peminjaman berhasil dikonfirmasi!');
     }
@@ -244,7 +331,7 @@ class Peminjaman extends BaseController
         }
 
         $data['peminjaman'] = $peminjaman;
-        $data['buku'] = $this->buku->findAll();
+        $data['buku'] = $this->buku->orderBy('judul', 'ASC')->findAll();
         $data['petugas'] = $this->petugas->getAllWithUser();
 
         if ($session->get('role') === 'anggota') {
@@ -277,37 +364,57 @@ class Peminjaman extends BaseController
         }
 
         $validation = \Config\Services::validation();
-        $validation->setRules([
+        $rules = [
             'id_buku'        => 'required',
+            'id_buku.*'      => 'is_natural_no_zero',
             'tanggal_pinjam' => 'required',
             'tanggal_kembali' => 'required',
             'status'         => 'required',
-        ]);
+        ];
 
         if ($session->get('role') !== 'anggota') {
-            $validation->setRules([
-                'id_anggota'     => 'required',
-            ]);
+            $rules['id_anggota'] = 'required';
         }
+
+        $validation->setRules($rules);
 
         if (!$validation->withRequest($this->request)->run()) {
             return redirect()->back()->with('error', implode('<br>', $validation->getErrors()))->withInput();
         }
 
-        $oldBukuId = $peminjaman['id_buku'];
-        $newBukuId = $this->request->getPost('id_buku');
+        $oldBukuIds = $this->peminjaman->getBukuIds($peminjaman['id_buku']);
+        $newBukuIds = $this->peminjaman->getBukuIds($this->request->getPost('id_buku'));
 
-        if ($oldBukuId != $newBukuId) {
-            $oldBuku = $this->buku->find($oldBukuId);
-            $newBuku = $this->buku->find($newBukuId);
+        if (empty($newBukuIds)) {
+            return redirect()->back()->with('error', 'Pilih minimal satu buku untuk dipinjam')->withInput();
+        }
 
-            if ($oldBuku) {
-                $this->buku->update($oldBukuId, ['tersedia' => $oldBuku['tersedia'] + 1]);
-            }
-            if ($newBuku && $newBuku['tersedia'] > 0) {
-                $this->buku->update($newBukuId, ['tersedia' => $newBuku['tersedia'] - 1]);
-            } else {
-                return redirect()->back()->with('error', 'Buku baru tidak tersedia')->withInput();
+        $bukuMap = $this->getBukuMap(array_values(array_unique(array_merge($oldBukuIds, $newBukuIds))));
+        if (count($bukuMap) !== count(array_unique(array_merge($oldBukuIds, $newBukuIds)))) {
+            return redirect()->back()->with('error', 'Ada buku yang tidak ditemukan')->withInput();
+        }
+
+        $statusLama = $peminjaman['status'];
+        $statusBaru = $this->request->getPost('status');
+        $statusStok = ['dipinjam', 'terlambat'];
+        $oldHoldsStock = in_array($statusLama, $statusStok, true);
+        $newHoldsStock = in_array($statusBaru, $statusStok, true);
+
+        $restoreIds = [];
+        $takeIds = [];
+
+        if ($oldHoldsStock && $newHoldsStock) {
+            $restoreIds = array_values(array_diff($oldBukuIds, $newBukuIds));
+            $takeIds = array_values(array_diff($newBukuIds, $oldBukuIds));
+        } elseif ($oldHoldsStock) {
+            $restoreIds = $oldBukuIds;
+        } elseif ($newHoldsStock) {
+            $takeIds = $newBukuIds;
+        }
+
+        foreach ($takeIds as $id_buku) {
+            if ((int) $bukuMap[$id_buku]['tersedia'] <= 0) {
+                return redirect()->back()->with('error', 'Buku "' . esc($bukuMap[$id_buku]['judul']) . '" tidak tersedia')->withInput();
             }
         }
 
@@ -332,13 +439,24 @@ class Peminjaman extends BaseController
         $data = [
             'id_anggota'      => $id_anggota,
             'id_petugas'      => $id_petugas,
-            'id_buku'         => $newBukuId,
+            'id_buku'         => $this->peminjaman->setBukuIds($newBukuIds),
             'tanggal_pinjam'  => $this->request->getPost('tanggal_pinjam'),
             'tanggal_kembali' => $this->request->getPost('tanggal_kembali'),
-            'status'          => $this->request->getPost('status'),
+            'status'          => $statusBaru,
         ];
 
+        $db = $this->peminjaman->db;
+        $db->transStart();
+
+        $this->tambahStok($restoreIds);
+        $this->kurangiStok($takeIds);
         $this->peminjaman->update($id, $data);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->with('error', 'Peminjaman gagal diupdate')->withInput();
+        }
 
         return redirect()->to('/peminjaman')->with('success', 'Peminjaman berhasil diupdate!');
     }
@@ -363,14 +481,22 @@ class Peminjaman extends BaseController
             }
         }
 
-        if ($peminjaman['status'] === 'dipinjam') {
-            $buku = $this->buku->find($peminjaman['id_buku']);
-            if ($buku) {
-                $this->buku->update($peminjaman['id_buku'], ['tersedia' => $buku['tersedia'] + 1]);
-            }
+        $idBuku = $this->peminjaman->getBukuIds($peminjaman['id_buku']);
+
+        $db = $this->peminjaman->db;
+        $db->transStart();
+
+        if (in_array($peminjaman['status'], ['dipinjam', 'terlambat'], true)) {
+            $this->tambahStok($idBuku);
         }
 
         $this->peminjaman->delete($id);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/peminjaman')->with('error', 'Peminjaman gagal dihapus');
+        }
 
         return redirect()->to('/peminjaman')->with('success', 'Peminjaman berhasil dihapus!');
     }
@@ -404,7 +530,7 @@ class Peminjaman extends BaseController
             return redirect()->to('/peminjaman')->with('error', 'Data tidak ditemukan');
         }
 
-        if ($peminjaman['status'] !== 'dipinjam') {
+        if (!in_array($peminjaman['status'], ['dipinjam', 'terlambat'], true)) {
             return redirect()->to('/peminjaman')->with('error', 'Buku sudah dikembalikan');
         }
 
@@ -413,11 +539,18 @@ class Peminjaman extends BaseController
             return redirect()->to('/peminjaman')->with('error', 'Hanya petugas yang bisa mengembalikan buku');
         }
 
-        $this->peminjaman->update($id, ['status' => 'kembali']);
+        $idBuku = $this->peminjaman->getBukuIds($peminjaman['id_buku']);
 
-        $buku = $this->buku->find($peminjaman['id_buku']);
-        if ($buku) {
-            $this->buku->update($peminjaman['id_buku'], ['tersedia' => $buku['tersedia'] + 1]);
+        $db = $this->peminjaman->db;
+        $db->transStart();
+
+        $this->peminjaman->update($id, ['status' => 'kembali']);
+        $this->tambahStok($idBuku);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/peminjaman')->with('error', 'Buku gagal dikembalikan');
         }
 
         $id_petugas = null;
@@ -468,12 +601,10 @@ class Peminjaman extends BaseController
             peminjaman.*,
             users.nama as nama_anggota,
             anggota.nis,
-            buku.judul as judul_buku,
             petugas_user.nama as nama_petugas
         ');
         $builder->join('anggota', 'anggota.id_anggota = peminjaman.id_anggota');
         $builder->join('users', 'users.id = anggota.user_id');
-        $builder->join('buku', 'buku.id_buku = peminjaman.id_buku');
         $builder->join('petugas', 'petugas.id_petugas = peminjaman.id_petugas', 'left');
         $builder->join('users as petugas_user', 'petugas_user.id = petugas.user_id', 'left');
 
@@ -486,11 +617,19 @@ class Peminjaman extends BaseController
         }
 
         if ($keyword) {
+            $bukuIds = $this->buku->select('id_buku')->like('judul', $keyword)->findAll();
+
             $builder->groupStart()
                 ->like('users.nama', $keyword)
-                ->orLike('anggota.nis', $keyword)
-                ->orLike('buku.judul', $keyword)
-                ->groupEnd();
+                ->orLike('anggota.nis', $keyword);
+
+            foreach ($bukuIds as $buku) {
+                $idBuku = (int) $buku['id_buku'];
+                $builder->orWhere(new RawSql("JSON_CONTAINS(peminjaman.id_buku, '{$idBuku}')"))
+                    ->orWhere('peminjaman.id_buku', $idBuku);
+            }
+
+            $builder->groupEnd();
         }
 
         if ($status) {
@@ -498,7 +637,7 @@ class Peminjaman extends BaseController
         }
 
         $builder->orderBy('peminjaman.tanggal_pinjam', 'DESC');
-        $data['peminjaman'] = $builder->findAll();
+        $data['peminjaman'] = $this->peminjaman->attachBuku($builder->get()->getResultArray());
         $data['keyword'] = $keyword;
         $data['status'] = $status;
         $data['pengaturan'] = $this->pengaturan->first();

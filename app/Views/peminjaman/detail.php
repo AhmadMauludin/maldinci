@@ -27,7 +27,17 @@ Detail Peminjaman
                 </tr>
                 <tr>
                     <th>Buku</th>
-                    <td>: <?= esc($peminjaman['judul_buku']) ?></td>
+                    <td>:
+                        <?php if (!empty($peminjaman['buku_list'])): ?>
+                            <ul class="mb-0 ps-3">
+                                <?php foreach ($peminjaman['buku_list'] as $buku): ?>
+                                    <li><?= esc($buku['judul']) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
+                    </td>
                 </tr>
                 <tr>
                     <th>Petugas</th>

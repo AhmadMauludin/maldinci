@@ -77,7 +77,17 @@ Data Peminjaman
                                     <td>
                                         <strong><?= esc($pinjam['nama_anggota']) ?></strong> [NIS: <?= esc($pinjam['nis']) ?>]
                                     </td>
-                                    <td><?= esc($pinjam['judul_buku']) ?></td>
+                                    <td>
+                                        <?php if (!empty($pinjam['buku_list'])): ?>
+                                            <ul class="mb-0 ps-3">
+                                                <?php foreach ($pinjam['buku_list'] as $buku): ?>
+                                                    <li><?= esc($buku['judul']) ?></li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= esc($pinjam['nama_petugas'] ?? '-') ?></td>
                                     <td><?= date('d/m/Y', strtotime($pinjam['tanggal_pinjam'])) ?></td>
                                     <td><?= date('d/m/Y', strtotime($pinjam['tanggal_kembali'])) ?></td>

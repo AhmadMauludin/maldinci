@@ -5,6 +5,7 @@ Tambah Peminjaman
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php $bukuTerpilih = array_map('strval', (array) old('id_buku', [])); ?>
 <div class="container-fluid">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -23,7 +24,7 @@ Tambah Peminjaman
             </div>
         </div>
         <div class="card-body">
-            <form action="<?= base_url('/peminjaman/store') ?>" method="post">
+            <form action="<?= base_url('/peminjaman/store') ?>" method="post" id="formPeminjaman">
                 <?= csrf_field() ?>
                 <div class="row">
                     <?php if (session()->get('role') === 'anggota'): ?>
@@ -48,15 +49,25 @@ Tambah Peminjaman
                         </div>
                     <?php endif; ?>
                     <div class="col-md-6 mb-3">
-                        <label for="id_buku" class="form-label">Buku <span class="text-danger">*</span></label>
-                        <select name="id_buku" id="id_buku" class="form-select" required>
-                            <option value="">-- Pilih Buku --</option>
-                            <?php foreach ($buku as $b): ?>
-                                <option value="<?= $b['id_buku'] ?>" <?= old('id_buku') == $b['id_buku'] ? 'selected' : '' ?> data-tersedia="<?= $b['tersedia'] ?>">
-                                    <?= esc($b['judul']) ?> (Tersedia: <?= $b['tersedia'] ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label class="form-label">Buku <span class="text-danger">*</span></label>
+                        <input type="text" id="cariBuku" class="form-control form-control-sm mb-2" placeholder="Cari judul buku...">
+                        <div class="border rounded p-2" id="daftarBuku" style="max-height: 240px; overflow-y: auto;">
+                            <?php if (!empty($buku)): ?>
+                                <?php foreach ($buku as $b): ?>
+                                    <div class="form-check buku-item" data-judul="<?= esc(strtolower($b['judul']), 'attr') ?>">
+                                        <input class="form-check-input" type="checkbox" name="id_buku[]" id="buku_<?= $b['id_buku'] ?>" value="<?= $b['id_buku'] ?>" <?= in_array((string) $b['id_buku'], $bukuTerpilih, true) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="buku_<?= $b['id_buku'] ?>">
+                                            <?= esc($b['judul']) ?>
+                                            <span class="text-muted small">(Tersedia: <?= (int) $b['tersedia'] ?>)</span>
+                                        </label>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">Tidak ada buku yang tersedia.</p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="form-text">Centang satu atau lebih buku yang akan dipinjam.</div>
+                        <div class="text-danger small d-none" id="errorBuku">Pilih minimal satu buku.</div>
                     </div>
                 </div>
                 <div class="row">
@@ -89,6 +100,22 @@ document.getElementById('tanggal_pinjam').addEventListener('change', function() 
     const kembali = document.getElementById('tanggal_kembali');
     if (!kembali.value || new Date(kembali.value) <= pinjam) {
         kembali.value = pinjam.toISOString().split('T')[0];
+    }
+});
+
+document.getElementById('cariBuku').addEventListener('input', function() {
+    const kata = this.value.toLowerCase();
+    document.querySelectorAll('#daftarBuku .buku-item').forEach(function(item) {
+        item.classList.toggle('d-none', !item.dataset.judul.includes(kata));
+    });
+});
+
+document.getElementById('formPeminjaman').addEventListener('submit', function(e) {
+    const jumlah = document.querySelectorAll('#daftarBuku input[name="id_buku[]"]:checked').length;
+    if (jumlah === 0) {
+        e.preventDefault();
+        document.getElementById('errorBuku').classList.remove('d-none');
+        document.getElementById('daftarBuku').classList.add('border-danger');
     }
 });
 </script>

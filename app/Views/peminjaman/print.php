@@ -36,7 +36,15 @@
                                 <strong><?= esc($pinjam['nama_anggota']) ?></strong><br>
                                 <small>NIS: <?= esc($pinjam['nis']) ?></small>
                             </td>
-                            <td><?= esc($pinjam['judul_buku']) ?></td>
+                            <td>
+                                <?php if (!empty($pinjam['buku_list'])): ?>
+                                    <?php foreach ($pinjam['buku_list'] as $buku): ?>
+                                        <?= esc($buku['judul']) ?><br>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
                             <td><?= esc($pinjam['nama_petugas'] ?? '-') ?></td>
                             <td><?= date('d/m/Y', strtotime($pinjam['tanggal_pinjam'])) ?></td>
                             <td><?= date('d/m/Y', strtotime($pinjam['tanggal_kembali'])) ?></td>

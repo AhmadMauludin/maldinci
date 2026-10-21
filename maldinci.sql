@@ -161,7 +161,7 @@ CREATE TABLE `peminjaman` (
   `id_peminjaman` int(11) NOT NULL,
   `id_anggota` int(11) DEFAULT NULL,
   `id_petugas` int(11) DEFAULT NULL,
-  `id_buku` int(11) DEFAULT NULL,
+  `id_buku` text NOT NULL,
   `tanggal_pinjam` date DEFAULT NULL,
   `tanggal_kembali` date DEFAULT NULL,
   `status` enum('dimohon','dipinjam','kembali','terlambat') DEFAULT 'dimohon'
@@ -172,8 +172,8 @@ CREATE TABLE `peminjaman` (
 --
 
 INSERT INTO `peminjaman` (`id_peminjaman`, `id_anggota`, `id_petugas`, `id_buku`, `tanggal_pinjam`, `tanggal_kembali`, `status`) VALUES
-(14, 1, 1, 3, '2026-10-05', '2026-10-12', 'dipinjam'),
-(15, 2, NULL, 4, '2026-10-05', '2026-10-12', 'dimohon');
+(14, 1, 1, '[3]', '2026-10-05', '2026-10-12', 'dipinjam'),
+(15, 2, NULL, '[4]', '2026-10-05', '2026-10-12', 'dimohon');
 
 -- --------------------------------------------------------
 
@@ -451,8 +451,7 @@ ALTER TABLE `log_aktivitas`
 ALTER TABLE `peminjaman`
   ADD PRIMARY KEY (`id_peminjaman`),
   ADD KEY `peminjaman_ibfk_1` (`id_anggota`),
-  ADD KEY `peminjaman_ibfk_2` (`id_petugas`),
-  ADD KEY `id_buku` (`id_buku`);
+  ADD KEY `peminjaman_ibfk_2` (`id_petugas`);
 
 --
 -- Indexes for table `penarikan`
