@@ -5,6 +5,11 @@ Detail Peminjaman
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$statusTerkunci = in_array($peminjaman['status'], ['kembali', 'terlambat'], true);
+$pengembalian = $peminjaman['pengembalian'] ?? null;
+$denda = $peminjaman['denda'] ?? null;
+?>
 <div class="container-fluid">
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -69,6 +74,76 @@ Detail Peminjaman
         </div>
     </div>
 
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Informasi Pengembalian &amp; Denda</h6>
+        </div>
+        <div class="card-body">
+            <?php if ($pengembalian): ?>
+                <h6 class="fw-bold mb-2">Data Pengembalian</h6>
+                <table class="table table-borderless mb-4">
+                    <tr>
+                        <th width="30%">ID Pengembalian</th>
+                        <td>: <?= esc($pengembalian['id_pengembalian']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>ID Peminjaman</th>
+                        <td>: <?= esc($pengembalian['id_peminjaman']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Tanggal Dikembalikan</th>
+                        <td>: <?= !empty($pengembalian['tanggal_dikembalikan']) ? date('d F Y', strtotime($pengembalian['tanggal_dikembalikan'])) : '-' ?></td>
+                    </tr>
+                    <tr>
+                        <th>Denda</th>
+                        <td>: Rp <?= number_format((float) ($pengembalian['denda'] ?? 0), 0, ',', '.') ?></td>
+                    </tr>
+                </table>
+
+                <h6 class="fw-bold mb-2">Data Denda</h6>
+                <?php if ($denda): ?>
+                    <table class="table table-borderless mb-3">
+                        <tr>
+                            <th width="30%">ID Denda</th>
+                            <td>: <?= esc($denda['id_denda']) ?></td>
+                        </tr>
+                        <tr>
+                            <th>ID Pengembalian</th>
+                            <td>: <?= esc($denda['id_pengembalian']) ?></td>
+                        </tr>
+                        <tr>
+                            <th>Jumlah Denda</th>
+                            <td>: <span class="fw-bold <?= $denda['status'] === 'belum_bayar' ? 'text-danger' : 'text-success' ?>">Rp <?= number_format((float) $denda['jumlah_denda'], 0, ',', '.') ?></span></td>
+                        </tr>
+                        <tr>
+                            <th>Status Denda</th>
+                            <td>:
+                                <?php if ($denda['status'] === 'belum_bayar'): ?>
+                                    <span class="badge bg-danger">Belum Bayar</span>
+                                <?php else: ?>
+                                    <span class="badge bg-success">Sudah Bayar</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </table>
+                    <?php if ($denda['status'] === 'belum_bayar'): ?>
+                        <a href="<?= base_url('/peminjaman/bayar-denda/' . $denda['id_denda']) ?>" class="btn btn-danger" onclick="return confirm('Tandai denda ini sebagai sudah dibayar?')">
+                            <i class="bi bi-cash-coin"></i> Bayar Denda
+                        </a>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i> Tidak ada data denda untuk pengembalian ini.
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> Belum ada data pengembalian untuk peminjaman ini.
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-8">
             <!-- Aksi Cepat -->
@@ -90,7 +165,7 @@ Detail Peminjaman
                                 <i class="bi bi-arrow-return-left"></i> Kembalikan Buku
                             </a>
                         <?php endif; ?>
-                        <?php if (session()->get('role') !== 'anggota'): ?>
+                        <?php if (session()->get('role') !== 'anggota' && !$statusTerkunci): ?>
                             <a href="<?= base_url('/peminjaman/edit/' . $peminjaman['id_peminjaman']) ?>" class="btn btn-warning">
                                 <i class="bi bi-pencil"></i> Edit Data
                             </a>

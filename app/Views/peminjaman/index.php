@@ -65,13 +65,15 @@ Data Peminjaman
                             <th>Tgl Pinjam</th>
                             <th>Tgl Kembali</th>
                             <th>Status</th>
-                            <th width="15%">Aksi</th>
+                            <th>Denda</th>
+                            <th width="18%">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($peminjaman)): ?>
                             <?php $no = 1 + ($pager->getCurrentPage() - 1) * $pager->getPerPage(); ?>
                             <?php foreach ($peminjaman as $pinjam): ?>
+                                <?php $statusTerkunci = in_array($pinjam['status'], ['kembali', 'terlambat'], true); ?>
                                 <tr>
                                     <td class="text-center"><?= $no++ ?></td>
                                     <td>
@@ -103,13 +105,30 @@ Data Peminjaman
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-center">
+                                        <?php $denda = $pinjam['denda'] ?? null; ?>
+                                        <?php if ($denda): ?>
+                                            <div class="fw-bold <?= $denda['status'] === 'belum_bayar' ? 'text-danger' : 'text-success' ?>">
+                                                Rp <?= number_format((float) $denda['jumlah_denda'], 0, ',', '.') ?>
+                                            </div>
+                                            <?php if ($denda['status'] === 'belum_bayar'): ?>
+                                                <a href="<?= base_url('/peminjaman/bayar-denda/' . $denda['id_denda']) ?>" class="btn btn-sm btn-danger mt-1" title="Bayar Denda" onclick="return confirm('Tandai denda ini sebagai sudah dibayar?')">
+                                                    <i class="bi bi-cash-coin"></i> Bayar Denda
+                                                </a>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
                                         <a href="<?= base_url('/peminjaman/detail/' . $pinjam['id_peminjaman']) ?>" class="btn btn-sm btn-info" title="Detail">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <?php if (session()->get('role') !== 'anggota'): ?>
-                                            <a href="<?= base_url('/peminjaman/edit/' . $pinjam['id_peminjaman']) ?>" class="btn btn-sm btn-warning" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
+                                            <?php if (!$statusTerkunci): ?>
+                                                <a href="<?= base_url('/peminjaman/edit/' . $pinjam['id_peminjaman']) ?>" class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            <?php endif; ?>
                                             <?php if ($pinjam['status'] === 'dimohon' && session()->get('role') === 'petugas'): ?>
                                                 <a href="<?= base_url('/peminjaman/konfirmasi/' . $pinjam['id_peminjaman']) ?>" class="btn btn-sm btn-success" title="Konfirmasi" onclick="return confirm('Konfirmasi peminjaman ini?')">
                                                     <i class="bi bi-check-lg"></i>
@@ -122,16 +141,18 @@ Data Peminjaman
                                                     <i class="bi bi-arrow-return-left"></i>
                                                 </a>
                                             <?php endif; ?>
-                                            <a href="<?= base_url('/peminjaman/delete/' . $pinjam['id_peminjaman']) ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            <?php if (!$statusTerkunci): ?>
+                                                <a href="<?= base_url('/peminjaman/delete/' . $pinjam['id_peminjaman']) ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus data ini?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4">Tidak ada data peminjaman</td>
+                                <td colspan="9" class="text-center py-4">Tidak ada data peminjaman</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

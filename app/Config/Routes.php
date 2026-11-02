@@ -98,6 +98,7 @@ $routes->get('/peminjaman/detail/(:num)', 'Peminjaman::detail/$1', $allRole);
 $routes->get('/peminjaman/edit/(:num)', 'Peminjaman::edit/$1', $allRole);
 $routes->post('/peminjaman/update/(:num)', 'Peminjaman::update/$1', $allRole);
 $routes->get('/peminjaman/delete/(:num)', 'Peminjaman::delete/$1', $allRole);
+$routes->get('/peminjaman/bayar-denda/(:num)', 'Peminjaman::bayarDenda/$1', $allRole);
 $routes->get('/peminjaman/kembalikan/(:num)', 'Peminjaman::kembalikan/$1', $allRole);
 $routes->get('/peminjaman/konfirmasi/(:num)', 'Peminjaman::konfirmasi/$1', $allRole);
 $routes->get('/peminjaman/tolak/(:num)', 'Peminjaman::tolak/$1', $allRole);

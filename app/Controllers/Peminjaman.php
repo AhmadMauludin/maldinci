@@ -68,6 +68,14 @@ class Peminjaman extends BaseController
         return array_column($daftarBuku, null, 'id_buku');
     }
 
+    /**
+     * Status peminjaman yang sudah tidak boleh diedit atau dihapus.
+     */
+    private function isStatusTerkunci(string $status): bool
+    {
+        return in_array($status, ['kembali', 'terlambat'], true);
+    }
+
     public function index()
     {
         $session = session();
@@ -114,7 +122,9 @@ class Peminjaman extends BaseController
         }
 
         $builder->orderBy('peminjaman.tanggal_pinjam', 'DESC');
-        $data['peminjaman'] = $this->peminjaman->attachBuku($builder->paginate(10));
+        $data['peminjaman'] = $this->peminjaman->attachPengembalianDenda(
+            $this->peminjaman->attachBuku($builder->paginate(10))
+        );
         $data['pager'] = $this->peminjaman->pager;
         $data['keyword'] = $keyword;
         $data['status'] = $status;
@@ -322,6 +332,10 @@ class Peminjaman extends BaseController
             return redirect()->to('/peminjaman')->with('error', 'Data tidak ditemukan');
         }
 
+        if ($this->isStatusTerkunci($peminjaman['status'])) {
+            return redirect()->to('/peminjaman')->with('error', 'Peminjaman dengan status kembali atau terlambat tidak dapat diedit');
+        }
+
         // Anggota hanya bisa edit peminjaman miliknya
         if ($session->get('role') === 'anggota') {
             $anggotaData = $this->anggota->getByUserId($session->get('id'));
@@ -353,6 +367,10 @@ class Peminjaman extends BaseController
 
         if (!$peminjaman) {
             return redirect()->to('/peminjaman')->with('error', 'Data tidak ditemukan');
+        }
+
+        if ($this->isStatusTerkunci($peminjaman['status'])) {
+            return redirect()->to('/peminjaman')->with('error', 'Peminjaman dengan status kembali atau terlambat tidak dapat diedit');
         }
 
         // Anggota hanya bisa update peminjaman miliknya
@@ -470,6 +488,10 @@ class Peminjaman extends BaseController
             return redirect()->to('/peminjaman')->with('error', 'Data tidak ditemukan');
         }
 
+        if ($this->isStatusTerkunci($peminjaman['status'])) {
+            return redirect()->to('/peminjaman')->with('error', 'Peminjaman dengan status kembali atau terlambat tidak dapat dihapus');
+        }
+
         // Anggota hanya bisa hapus peminjaman miliknya (dan hanya yang status dipinjam)
         if ($session->get('role') === 'anggota') {
             $anggotaData = $this->anggota->getByUserId($session->get('id'));
@@ -501,6 +523,24 @@ class Peminjaman extends BaseController
         return redirect()->to('/peminjaman')->with('success', 'Peminjaman berhasil dihapus!');
     }
 
+    public function bayarDenda($id)
+    {
+        $dendaModel = new \App\Models\DendaModel();
+        $denda = $dendaModel->find($id);
+
+        if (!$denda) {
+            return redirect()->to('/peminjaman')->with('error', 'Data denda tidak ditemukan');
+        }
+
+        if ($denda['status'] === 'sudah_bayar') {
+            return redirect()->to('/peminjaman')->with('error', 'Denda tersebut sudah dibayar');
+        }
+
+        $dendaModel->update($id, ['status' => 'sudah_bayar']);
+
+        return redirect()->to('/peminjaman')->with('success', 'Denda berhasil dibayar!');
+    }
+
     public function detail($id)
     {
         $session = session();
@@ -517,6 +557,8 @@ class Peminjaman extends BaseController
                 return redirect()->to('/peminjaman')->with('error', 'Tidak diizinkan melihat detail peminjaman orang lain');
             }
         }
+
+        $peminjaman = $this->peminjaman->attachPengembalianDenda([$peminjaman])[0];
 
         return view('peminjaman/detail', ['peminjaman' => $peminjaman]);
     }

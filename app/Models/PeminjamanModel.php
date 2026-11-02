@@ -93,6 +93,62 @@ class PeminjamanModel extends Model
         return $rows;
     }
 
+    /**
+     * Melengkapi baris peminjaman dengan data pengembalian dan denda terkait.
+     */
+    public function attachPengembalianDenda(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+
+        $peminjamanIds = array_column($rows, 'id_peminjaman');
+        $pengembalianMap = [];
+
+        if (!empty($peminjamanIds)) {
+            $pengembalianModel = new PengembalianModel();
+            $daftarPengembalian = $pengembalianModel
+                ->whereIn('id_peminjaman', $peminjamanIds)
+                ->orderBy('id_pengembalian', 'DESC')
+                ->findAll();
+
+            foreach ($daftarPengembalian as $pengembalian) {
+                if (!isset($pengembalianMap[$pengembalian['id_peminjaman']])) {
+                    $pengembalianMap[$pengembalian['id_peminjaman']] = $pengembalian;
+                }
+            }
+        }
+
+        $pengembalianIds = array_column($pengembalianMap, 'id_pengembalian');
+        $dendaMap = [];
+
+        if (!empty($pengembalianIds)) {
+            $dendaModel = new DendaModel();
+            $daftarDenda = $dendaModel
+                ->whereIn('id_pengembalian', $pengembalianIds)
+                ->orderBy('id_denda', 'DESC')
+                ->findAll();
+
+            foreach ($daftarDenda as $denda) {
+                if (!isset($dendaMap[$denda['id_pengembalian']])) {
+                    $dendaMap[$denda['id_pengembalian']] = $denda;
+                }
+            }
+        }
+
+        foreach ($rows as &$row) {
+            $pengembalian = $pengembalianMap[$row['id_peminjaman']] ?? null;
+
+            $row['pengembalian'] = $pengembalian;
+            $row['denda'] = $pengembalian
+                ? ($dendaMap[$pengembalian['id_pengembalian']] ?? null)
+                : null;
+        }
+        unset($row);
+
+        return $rows;
+    }
+
     public function getPeminjamanWithRelations($id = null)
     {
         $builder = $this->db->table($this->table);
